@@ -1,0 +1,41 @@
+// Paquetes de ejercicios incluidos. Los nuevos paquetes llegan como archivos .json
+// con este mismo formato y se cargan con el botón "Cargar paquete".
+export const PACKS = [
+  {
+    id: "diagnostico",
+    title: "Diagnóstico (Semana 0)",
+    description:
+      "Palabras sueltas (sin contexto, para que el modelo no adivine) y frases con los sonidos que más cuestan a hispanohablantes. Un intento por ítem.",
+    items: [
+      { id: "d01", type: "word", text: "ship", focus: "/ɪ/ corta" },
+      { id: "d02", type: "word", text: "sheep", focus: "/iː/ larga" },
+      { id: "d03", type: "word", text: "live", focus: "/ɪ/ corta" },
+      { id: "d04", type: "word", text: "leave", focus: "/iː/ larga" },
+      { id: "d05", type: "word", text: "full", focus: "/ʊ/ corta" },
+      { id: "d06", type: "word", text: "fool", focus: "/uː/ larga" },
+      { id: "d07", type: "word", text: "cat", focus: "/æ/" },
+      { id: "d08", type: "word", text: "cut", focus: "/ʌ/" },
+      { id: "d09", type: "word", text: "very", focus: "/v/" },
+      { id: "d10", type: "word", text: "berry", focus: "/b/" },
+      { id: "d11", type: "word", text: "think", focus: "/θ/" },
+      { id: "d12", type: "word", text: "sink", focus: "/s/" },
+      { id: "d13", type: "word", text: "this", focus: "/ð/" },
+      { id: "d14", type: "word", text: "zoo", focus: "/z/ sonora" },
+      { id: "d15", type: "word", text: "share", focus: "/ʃ/" },
+      { id: "d16", type: "word", text: "chair", focus: "/tʃ/" },
+      { id: "d17", type: "word", text: "jet", focus: "/dʒ/" },
+      { id: "d18", type: "word", text: "yet", focus: "/j/" },
+      { id: "d19", type: "word", text: "speak", focus: "s + consonante" },
+      { id: "d20", type: "word", text: "worked", focus: "-ed = /t/" },
+      { id: "d21", type: "word", text: "played", focus: "-ed = /d/" },
+      { id: "d22", type: "word", text: "wanted", focus: "-ed = /ɪd/" },
+      { id: "d23", type: "word", text: "hello", focus: "/h/ (no es la j española)" },
+      { id: "d24", type: "sentence", text: "I think this job is very easy.", focus: "/θ/, /ð/, /v/, /z/" },
+      { id: "d25", type: "sentence", text: "She worked late and wanted to leave early.", focus: "-ed, /iː/" },
+      { id: "d26", type: "sentence", text: "The ship stayed near the beach for three days.", focus: "/ɪ/ vs /iː/, /θ/" },
+      { id: "d27", type: "sentence", text: "We need to schedule a short meeting with the client.", focus: "s + consonante, /ʃ/" },
+      { id: "d28", type: "sentence", text: "Could you share the report before Thursday?", focus: "/ʃ/, /ɹ/, /θ/" },
+      { id: "d29", type: "sentence", text: "Our team fixed the bug in the payment service.", focus: "/æ/ vs /ʌ/, -ed" },
+    ],
+  },
+];

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pronunciation Lab</title>
+<!-- En hosts sin cabeceras COOP/COEP (GitHub Pages) activa el modo multihilo con un service worker -->
+<script src="coi-serviceworker.min.js"></script>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e3e2dc; --accent:#2f6fde;
+          --good:#1f8a4c; --mid:#b7791f; --bad:#c53030; --goodbg:#e6f4ec; --badbg:#fbeaea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --card:#21211f; --ink:#ecebe6; --muted:#9d9c95; --line:#34332f; --accent:#6d9cf0;
+            --good:#4cc485; --mid:#e0a84a; --bad:#f07070; --goodbg:#1c3327; --badbg:#3a2020; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:16px 24px; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  h1 { font-size:18px; margin:0 16px 0 0; }
+  main { max-width:880px; margin:0 auto; padding:20px 24px 60px; display:grid; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
+  select, button, textarea, .btn { font:inherit; color:inherit; }
+  select, textarea { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
+  button, .btn { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:7px 14px; cursor:pointer; display:inline-block; }
+  button:hover:not(:disabled), .btn:hover { border-color:var(--accent); }
+  button:disabled, .btn.disabled { opacity:.45; cursor:not-allowed; pointer-events:none; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.live { background:var(--bad); border-color:var(--bad); color:#fff; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .status { font-size:13px; color:var(--muted); width:100%; }
+  .status.ok { color:var(--good); } .status.warn { color:var(--mid); } .status.err { color:var(--bad); }
+  .muted { color:var(--muted); } .small { font-size:13px; }
+  .badge { font-size:12px; border:1px solid var(--line); border-radius:99px; padding:1px 10px; color:var(--muted); }
+  #text { font-size:30px; font-weight:600; margin:14px 0 4px; }
+  #ipa { font-family: "Charis SIL", "Doulos SIL", "Noto Sans", serif; color:var(--muted); font-size:17px; margin-bottom:14px; }
+  .scoreline { display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; }
+  .score { font-size:32px; font-weight:700; }
+  .score.good, .good { color:var(--good); } .score.mid { color:var(--mid); } .score.bad, .err { color:var(--bad); }
+  .words { font-size:20px; line-height:2; }
+  .w { padding:2px 6px; border-radius:6px; }
+  .w.good { background:var(--goodbg); color:var(--ink); } .w.bad { background:var(--badbg); color:var(--bad); font-weight:600; }
+  .hints li { margin-bottom:4px; }
+  code { font-family: "Charis SIL", "Doulos SIL", ui-monospace, monospace; background:var(--bg); padding:0 4px; border-radius:4px; }
+  table.detail { border-collapse:collapse; width:100%; margin:8px 0; font-size:14px; }
+  table.detail th, table.detail td { text-align:left; border-bottom:1px solid var(--line); padding:4px 8px; }
+  tr.badrow td { color:var(--bad); }
+  audio { width:100%; margin-top:10px; }
+  textarea { width:100%; }
+  #report-box { width:100%; height:180px; font-family:ui-monospace, monospace; font-size:12px; margin-top:8px; }
+  .kbd { font-size:12px; color:var(--muted); }
+  input[type=file] { display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pronunciation Lab</h1>
+  <select id="mode" title="Modelo de reconocimiento de fonemas">
+    <option value="fast">Rápido · 318 MB (CPU)</option>
+    <option value="precise">Preciso · 1,26 GB (CPU)</option>
+    <option value="gpu">GPU · 632 MB (WebGPU, experimental)</option>
+  </select>
+  <button id="load" class="primary">Cargar modelo</button>
+  <div id="status" class="status">El modelo se descarga la primera vez y queda guardado en el navegador. Tu audio nunca sale de tu computador.</div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="row">
+      <label for="pack"><b>Paquete</b></label>
+      <select id="pack"></select>
+      <label class="btn" for="pack-file">Cargar paquete (.json)</label>
+      <input id="pack-file" type="file" accept=".json,application/json">
+    </div>
+    <p id="pack-desc" class="muted small"></p>
+    <div id="free" hidden>
+      <textarea id="free-text" rows="3" placeholder="Una palabra o frase por línea, en inglés"></textarea>
+      <div class="row" style="margin-top:8px"><button id="free-go">Practicar estas frases</button></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <span id="counter" class="badge"></span><span id="type" class="badge"></span><span id="focus" class="muted small"></span>
+    </div>
+    <div id="text"></div>
+    <div id="ipa"></div>
+    <div class="row">
+      <button id="listen" title="Atajo: L">▶ Escuchar modelo</button>
+      <label class="small muted">velocidad <select id="rate"><option value="0.8">lenta</option><option value="1" selected>normal</option></select></label>
+      <button id="rec" class="primary" disabled title="Atajo: R">● Grabar</button>
+      <label id="upload-label" class="btn disabled" for="audio-file">Subir audio</label>
+      <input id="audio-file" type="file" accept="audio/*">
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label class="small muted"><input id="ipa-toggle" type="checkbox" checked> mostrar IPA esperado</label>
+      <span class="kbd">atajos: R grabar/detener · L escuchar · ← →</span>
+      <span style="flex:1"></span>
+      <button id="prev">← Anterior</button><button id="next">Siguiente →</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin-top:0">Resultado</h3>
+    <div id="result"></div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin-top:0">Resumen del paquete</h3>
+    <div id="summary"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="copy" class="primary">Copiar reporte para Claude</button>
+      <button id="json">Descargar JSON</button>
+    </div>
+    <textarea id="report-box" hidden readonly></textarea>
+    <p class="muted small">El modelo (wav2vec2 espeak, Meta) se entrenó sobre todo con voces nativas y a veces se equivoca con acentos no nativos: toma el resultado como indicador, no como veredicto. Repite 2–3 veces lo que salga mal y fíjate en los errores que se repiten.</p>
+  </section>
+</main>
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
